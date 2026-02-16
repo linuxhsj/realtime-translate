@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Realtime Translation V2 Setup Script
-# 实时翻译系统 V2 安装脚本
+# Realtime Translation V6 Setup Script
+# 实时翻译系统 V6 安装脚本
 
 set -e
 
-echo "🚀 开始安装实时翻译系统 V2"
+echo "🚀 开始安装实时翻译系统 V6"
 echo "================================"
 echo ""
 
@@ -60,37 +60,19 @@ else
     echo "✅ BlackHole 已安装"
 fi
 
-# 6. 安装 Übersicht 组件
+# 6. 检查 NVIDIA API Key
 echo ""
-echo "📦 安装 Übersicht 组件..."
-UBERSICHT_WIDGETS="$HOME/Library/Application Support/Übersicht/widgets"
-
-if [ -d "$UBERSICHT_WIDGETS" ]; then
-    WIDGET_DIR="$UBERSICHT_WIDGETS/translation-widget-v2"
-    mkdir -p "$WIDGET_DIR"
-    
-    cp "$(dirname "$0")/translation-widget-v2.coffee" "$WIDGET_DIR/index.coffee"
-    
-    echo "✅ Übersicht 组件已安装到: $WIDGET_DIR"
+echo "📦 检查 NVIDIA API Key..."
+if [ -z "$NVIDIA_API_KEY" ]; then
+    echo "⚠️  NVIDIA_API_KEY 未设置"
+    echo ""
+    echo "请设置环境变量:"
+    echo "  export NVIDIA_API_KEY='your-api-key'"
+    echo ""
+    echo "获取 API Key: https://build.nvidia.com/"
 else
-    echo "⚠️  Übersicht 未安装，跳过组件安装"
-    echo "   如需桌面字幕显示，请安装: brew install --cask ubersicht"
+    echo "✅ NVIDIA_API_KEY 已设置"
 fi
-
-# 7. 创建便捷启动脚本
-echo ""
-echo "📦 创建启动脚本..."
-SCRIPT_DIR="$(dirname "$0")"
-START_SCRIPT="$SCRIPT_DIR/start.sh"
-
-cat > "$START_SCRIPT" << 'EOF'
-#!/bin/bash
-cd "$(dirname "$0")"
-python3 realtime_translate_v2.py "$@"
-EOF
-
-chmod +x "$START_SCRIPT"
-echo "✅ 启动脚本已创建: $START_SCRIPT"
 
 # 完成
 echo ""
@@ -98,14 +80,13 @@ echo "================================"
 echo "🎉 安装完成！"
 echo ""
 echo "📋 使用方法:"
-echo "1. 确保系统音频输出设置为 BlackHole"
-echo "2. 运行: ./start.sh"
-echo "   或: python3 realtime_translate_v2.py"
+echo "1. 确保系统音频输出设置为 BlackHole (多输出设备)"
+echo "2. 设置 NVIDIA API Key:"
+echo "   export NVIDIA_API_KEY='your-api-key'"
+echo "3. 运行: ./run.sh"
+echo "   或: python3 realtime_translate_v6_gui.py"
 echo ""
-echo "⚙️  可选参数:"
-echo "   -m, --model    模型大小: tiny/base/small/medium"
-echo "   -d, --device   计算设备: auto/cpu/cuda"
-echo ""
-echo "💡 示例:"
-echo "   ./start.sh -m small -d cuda"
+echo "🌐 支持的语言:"
+echo "   识别: 英语、中文、德语、西班牙语、法语、意大利语、日语、韩语等"
+echo "   翻译: 中文、英语、日语、韩语、德语、法语、西班牙语等"
 echo ""
