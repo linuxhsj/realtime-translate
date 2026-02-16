@@ -23,10 +23,35 @@ from typing import Optional
 import numpy as np
 import re
 import warnings
+import fcntl
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "false"
 warnings.filterwarnings("ignore")
+
+LOCK_FILE = "/tmp/realtime_translate_v6.lock"
+lock_fd = None
+
+def acquire_lock():
+    global lock_fd
+    try:
+        lock_fd = open(LOCK_FILE, 'w')
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except (IOError, OSError):
+        if lock_fd:
+            lock_fd.close()
+        return False
+
+def release_lock():
+    global lock_fd
+    if lock_fd:
+        fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        lock_fd.close()
+        try:
+            os.remove(LOCK_FILE)
+        except:
+            pass
 
 try:
     from openai import OpenAI
@@ -599,9 +624,19 @@ class TranslationGUI:
                 pass
     
     def run(self):
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.root.mainloop()
+    
+    def _on_close(self):
+        self.running = False
+        release_lock()
+        self.root.destroy()
 
 
 if __name__ == "__main__":
+    if not acquire_lock():
+        print("程序已在运行中")
+        sys.exit(0)
+    
     app = TranslationGUI()
     app.run()
